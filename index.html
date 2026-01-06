@@ -2,16 +2,37 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Meine Mini App</title>
+  <title>Glücksrad Test</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h1>Meine erste Telegram Mini App</h1>
-  <p>Wenn du das liest, funktioniert Schritt 1.</p>
+  <h1>Glücksrad Test</h1>
+  <p id="username">Benutzer: </p>
+  <p id="points">Punkte: </p>
+  <button id="addPoint">+1 Punkt</button>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
+
+    // Telegram User-Daten abrufen
+    const user = tg.initDataUnsafe.user || {username: "Gast"};
+
+    let points = 50; // Startpunkte
+
+    // Anzeige aktualisieren
+    function updateDisplay() {
+      document.getElementById("username").innerText = "Benutzer: " + user.username;
+      document.getElementById("points").innerText = "Punkte: " + points;
+    }
+
+    updateDisplay();
+
+    // Button +1 Punkt
+    document.getElementById("addPoint").onclick = () => {
+      points += 1;
+      updateDisplay();
+    }
   </script>
 </body>
 </html>
