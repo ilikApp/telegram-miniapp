@@ -8,7 +8,6 @@
 <body>
   <h1>🎡 Glücksrad</h1>
 <button id="addPointsBtn">+10 Punkte</button>
-
   <p id="username"></p>
   <p id="points"></p>
 
@@ -63,7 +62,11 @@
     }
 
     update();
-
+document.getElementById("addPointsBtn").onclick = () => {
+  points += 10;
+  document.getElementById("result").innerText = "➕ 10 Punkte";
+  update();
+};
     document.getElementById("spin").onclick = () => {
       resetUI();
       const r = Math.random();
