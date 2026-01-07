@@ -13,6 +13,13 @@
 
   <button id="spin">Rad drehen</button>
 
+  <div id="questionBox" style="display:none;">
+    <p id="questionText"></p>
+    <button onclick="answer(0)">Antwort A</button>
+    <button onclick="answer(1)">Antwort B</button>
+    <button onclick="answer(2)">Antwort C</button>
+  </div>
+
   <p id="result"></p>
 
   <script>
@@ -21,6 +28,25 @@
 
     const user = tg.initDataUnsafe.user || { username: "Gast" };
     let points = 50;
+    let currentQuestion = null;
+
+    const questions = [
+      {
+        q: "Was ist die Hauptstadt von Frankreich?",
+        a: ["Berlin", "Paris", "Rom"],
+        correct: 1
+      },
+      {
+        q: "2 + 2 = ?",
+        a: ["3", "4", "5"],
+        correct: 1
+      },
+      {
+        q: "Welche Farbe hat der Himmel?",
+        a: ["Blau", "Grün", "Rot"],
+        correct: 0
+      }
+    ];
 
     function update() {
       document.getElementById("username").innerText = "Benutzer: " + user.username;
@@ -30,21 +56,44 @@
     update();
 
     document.getElementById("spin").onclick = () => {
+      document.getElementById("result").innerText = "";
+      document.getElementById("questionBox").style.display = "none";
+
       const r = Math.random();
 
       if (r < 0.4) {
         points += 10;
-        document.getElementById("result").innerText = "➕ Du bekommst 10 Punkte";
+        document.getElementById("result").innerText = "➕ 10 Punkte erhalten";
       } 
       else if (r < 0.7) {
-        document.getElementById("result").innerText = "❓ Frage kommt (später)";
+        currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+        document.getElementById("questionText").innerText = currentQuestion.q;
+        document.querySelectorAll("#questionBox button").forEach((btn, i) => {
+          btn.innerText = currentQuestion.a[i];
+        });
+        document.getElementById("questionBox").style.display = "block";
       } 
       else {
-        document.getElementById("result").innerText = "🎲 Risiko-Feld (später)";
+        document.getElementById("result").innerText = "🎲 Risiko kommt im nächsten Schritt";
       }
 
       update();
     };
+
+    function answer(index) {
+      if (!currentQuestion) return;
+
+      if (index === currentQuestion.correct) {
+        points += 5;
+        document.getElementById("result").innerText = "✅ Richtig! +5 Punkte";
+      } else {
+        document.getElementById("result").innerText = "❌ Falsch!";
+      }
+
+      currentQuestion = null;
+      document.getElementById("questionBox").style.display = "none";
+      update();
+    }
   </script>
 </body>
 </html>
