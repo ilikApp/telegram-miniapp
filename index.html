@@ -13,6 +13,12 @@
 
   <button id="spin">Rad drehen</button>
 
+  <div id="betBox" style="display:none;">
+    <p>Wie viele Punkte setzt du?</p>
+    <input id="betInput" type="number" min="1">
+    <button onclick="startRisk()">Einsatz bestätigen</button>
+  </div>
+
   <div id="questionBox" style="display:none;">
     <p id="questionText"></p>
     <button onclick="answer(0)">Antwort A</button>
@@ -29,6 +35,8 @@
     const user = tg.initDataUnsafe.user || { username: "Gast" };
     let points = 50;
     let currentQuestion = null;
+    let bet = 0;
+    let riskMode = false;
 
     const questions = [
       {
@@ -37,14 +45,14 @@
         correct: 1
       },
       {
-        q: "2 + 2 = ?",
-        a: ["3", "4", "5"],
+        q: "5 × 5 = ?",
+        a: ["20", "25", "30"],
         correct: 1
       },
       {
-        q: "Welche Farbe hat der Himmel?",
-        a: ["Blau", "Grün", "Rot"],
-        correct: 0
+        q: "Welche Farbe hat Gras?",
+        a: ["Blau", "Grün", "Gelb"],
+        correct: 1
       }
     ];
 
@@ -56,43 +64,84 @@
     update();
 
     document.getElementById("spin").onclick = () => {
-      document.getElementById("result").innerText = "";
-      document.getElementById("questionBox").style.display = "none";
-
+      resetUI();
       const r = Math.random();
 
       if (r < 0.4) {
         points += 10;
-        document.getElementById("result").innerText = "➕ 10 Punkte erhalten";
+        document.getElementById("result").innerText = "➕ 10 Punkte";
       } 
       else if (r < 0.7) {
-        currentQuestion = questions[Math.floor(Math.random() * questions.length)];
-        document.getElementById("questionText").innerText = currentQuestion.q;
-        document.querySelectorAll("#questionBox button").forEach((btn, i) => {
-          btn.innerText = currentQuestion.a[i];
-        });
-        document.getElementById("questionBox").style.display = "block";
+        currentQuestion = randomQuestion();
+        showQuestion();
       } 
       else {
-        document.getElementById("result").innerText = "🎲 Risiko kommt im nächsten Schritt";
+        document.getElementById("betBox").style.display = "block";
+        document.getElementById("result").innerText = "🎲 Risiko-Modus!";
       }
 
       update();
     };
 
+    function startRisk() {
+      bet = parseInt(document.getElementById("betInput").value);
+      if (!bet || bet <= 0 || bet > points) {
+        alert("Ungültiger Einsatz");
+        return;
+      }
+      riskMode = true;
+      document.getElementById("betBox").style.display = "none";
+      currentQuestion = randomQuestion();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      document.getElementById("questionText").innerText = currentQuestion.q;
+      document.querySelectorAll("#questionBox button").forEach((btn, i) => {
+        btn.innerText = currentQuestion.a[i];
+      });
+      document.getElementById("questionBox").style.display = "block";
+    }
+
     function answer(index) {
       if (!currentQuestion) return;
 
       if (index === currentQuestion.correct) {
-        points += 5;
-        document.getElementById("result").innerText = "✅ Richtig! +5 Punkte";
+        if (riskMode) {
+          points += bet;
+          document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
+        } else {
+          points += 5;
+          document.getElementById("result").innerText = "✅ Richtig! +5 Punkte";
+        }
       } else {
-        document.getElementById("result").innerText = "❌ Falsch!";
+        if (riskMode) {
+          points -= bet;
+          document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
+        } else {
+          document.getElementById("result").innerText = "❌ Falsch!";
+        }
       }
 
-      currentQuestion = null;
-      document.getElementById("questionBox").style.display = "none";
+      resetState();
       update();
+    }
+
+    function resetUI() {
+      document.getElementById("betBox").style.display = "none";
+      document.getElementById("questionBox").style.display = "none";
+      document.getElementById("result").innerText = "";
+    }
+
+    function resetState() {
+      currentQuestion = null;
+      bet = 0;
+      riskMode = false;
+      document.getElementById("questionBox").style.display = "none";
+    }
+
+    function randomQuestion() {
+      return questions[Math.floor(Math.random() * questions.length)];
     }
   </script>
 </body>
