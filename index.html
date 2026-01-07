@@ -30,10 +30,19 @@
 
   <script>
     const tg = Telegram.WebApp;
+const USER_ID = "user_" + (tg.initDataUnsafe.user?.id || Math.random().toString(36).slice(2));
     tg.ready();
 
     const user = tg.initDataUnsafe.user || { username: "Gast" };
-    let points = 50;
+    let points = 0;
+
+fetch("http://localhost:3000/me/" + USER_ID)
+  .then(res => res.json())
+  .then(data => {
+    points = data.points;
+    update();
+  });
+
     let currentQuestion = null;
     let bet = 0;
     let riskMode = false;
@@ -62,10 +71,21 @@
     }
 
     update();
+fetch("http://localhost:3000/me/" + USER_ID, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points })
+});
+
 document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
   document.getElementById("result").innerText = "➕ 10 Punkte";
   update();
+fetch("http://localhost:3000/me/" + USER_ID, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points })
+});
 };
     document.getElementById("spin").onclick = () => {
       resetUI();
@@ -85,6 +105,11 @@ document.getElementById("addPointsBtn").onclick = () => {
       }
 
       update();
+fetch("http://localhost:3000/me/" + USER_ID, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points })
+});
     };
 
     function startRisk() {
@@ -129,6 +154,11 @@ document.getElementById("addPointsBtn").onclick = () => {
 
       resetState();
       update();
+fetch("http://localhost:3000/me/" + USER_ID, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ points })
+});
     }
 
     function resetUI() {
