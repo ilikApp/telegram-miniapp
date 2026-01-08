@@ -70,18 +70,12 @@ fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID)
       document.getElementById("points").innerText = "Punkte: " + points;
     }
 
-    update();
-fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points })
-});
-
 document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
   document.getElementById("result").innerText = "➕ 10 Punkte";
   update();
-fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
+savePoints();
+fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -105,7 +99,8 @@ fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
       }
 
       update();
-fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
+savePoints();
+fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -141,11 +136,15 @@ fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
           document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
         } else {
           points += 5;
+update();
+savePoints();
           document.getElementById("result").innerText = "✅ Richtig! +5 Punkte";
         }
       } else {
         if (riskMode) {
           points -= bet;
+update();
+savePoints();
           document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
         } else {
           document.getElementById("result").innerText = "❌ Falsch!";
@@ -171,6 +170,13 @@ fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
     function randomQuestion() {
       return questions[Math.floor(Math.random() * questions.length)];
     }
+function savePoints() {
+  fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ points })
+  });
+}
   </script>
 </body>
 </html>
