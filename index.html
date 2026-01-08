@@ -36,7 +36,7 @@ const USER_ID = "user_" + (tg.initDataUnsafe.user?.id || Math.random().toString(
     const user = tg.initDataUnsafe.user || { username: "Gast" };
     let points = 0;
 
-fetch("http://localhost:3000/me/" + USER_ID)
+fetch("https://gluecksrad-backend.onrender.com" + USER_ID)
   .then(res => res.json())
   .then(data => {
     points = data.points;
@@ -71,7 +71,7 @@ fetch("http://localhost:3000/me/" + USER_ID)
     }
 
     update();
-fetch("http://localhost:3000/me/" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -81,7 +81,7 @@ document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
   document.getElementById("result").innerText = "➕ 10 Punkte";
   update();
-fetch("http://localhost:3000/me/" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -105,7 +105,7 @@ fetch("http://localhost:3000/me/" + USER_ID, {
       }
 
       update();
-fetch("http://localhost:3000/me/" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -154,7 +154,7 @@ fetch("http://localhost:3000/me/" + USER_ID, {
 
       resetState();
       update();
-fetch("http://localhost:3000/me/" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
