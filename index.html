@@ -36,10 +36,10 @@ const USER_ID = "user_" + (tg.initDataUnsafe.user?.id || Math.random().toString(
     const user = tg.initDataUnsafe.user || { username: "Gast" };
     let points = 0;
 
-fetch("https://gluecksrad-backend.onrender.com" + USER_ID)
+fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID)
   .then(res => res.json())
   .then(data => {
-    points = data.points;
+    points = data.points ?? 0;
     update();
   });
 
@@ -71,7 +71,7 @@ fetch("https://gluecksrad-backend.onrender.com" + USER_ID)
     }
 
     update();
-fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -81,7 +81,7 @@ document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
   document.getElementById("result").innerText = "➕ 10 Punkte";
   update();
-fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -105,7 +105,7 @@ fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
       }
 
       update();
-fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
+fetch("https://gluecksrad-backend.onrender.com/me/:id" + USER_ID, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ points })
@@ -153,13 +153,7 @@ fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
       }
 
       resetState();
-      update();
-fetch("https://gluecksrad-backend.onrender.com" + USER_ID, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points })
-});
-    }
+         }
 
     function resetUI() {
       document.getElementById("betBox").style.display = "none";
