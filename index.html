@@ -7,13 +7,11 @@
 </head>
 <body>
   <h1>🎡 Glücksrad</h1>
-<button id="addPointsBtn">+10 Punkte</button>
+  <button id="addPointsBtn">+10 Punkte</button>
   <p id="username"></p>
   <p id="points"></p>
 
   <button id="spin">Rad drehen</button>
-<h1 id="question">Frage lädt…</h1>
-<div id="answers"></div>
 
   <div id="betBox" style="display:none;">
     <p>Wie viele Punkte setzt du?</p>
@@ -21,157 +19,129 @@
     <button onclick="startRisk()">Einsatz bestätigen</button>
   </div>
 
-  <div id="questionBox" style="display:none;">
-    <p id="questionText"></p>
-    <button onclick="answer(0)">Antwort A</button>
-    <button onclick="answer(1)">Antwort B</button>
-    <button onclick="answer(2)">Antwort C</button>
-  </div>
-
+  <h2 id="question" style="display:none;"></h2>
+  <div id="answers" style="display:none;"></div>
   <p id="result"></p>
 
-  <script>
-    const tg = Telegram.WebApp;
+<script>
+const tg = Telegram.WebApp;
 const USER_ID = "user_" + (tg.initDataUnsafe.user?.id || Math.random().toString(36).slice(2));
-    tg.ready();
+tg.ready();
 
-    const user = tg.initDataUnsafe.user || { username: "Gast" };
-    let points = 0;
+const user = tg.initDataUnsafe.user || { username: "Gast" };
+let points = 0;
+let currentQuestion = null;
+let bet = 0;
+let riskMode = false;
 
+// Punkte laden
 fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID)
   .then(res => res.json())
   .then(data => {
     points = data.points ?? 0;
-    update();
+    updateUI();
   });
 
-    let currentQuestion = null;
-    let bet = 0;
-    let riskMode = false;
+function updateUI() {
+  document.getElementById("username").innerText = "Benutzer: " + user.username;
+  document.getElementById("points").innerText = "Punkte: " + points;
+}
 
-    const questions = [
-      {
-        q: "Was ist die Hauptstadt von Frankreich?",
-        a: ["Berlin", "Paris", "Rom"],
-        correct: 1
-      },
-      {
-        q: "5 × 5 = ?",
-        a: ["20", "25", "30"],
-        correct: 1
-      },
-      {
-        q: "Welche Farbe hat Gras?",
-        a: ["Blau", "Grün", "Gelb"],
-        correct: 1
-      }
-    ];
-
-    function update() {
-      document.getElementById("username").innerText = "Benutzer: " + user.username;
-      document.getElementById("points").innerText = "Punkte: " + points;
-    }
-
+// +10 Punkte Button
 document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
   document.getElementById("result").innerText = "➕ 10 Punkte";
-  update();
-savePoints();
-fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points })
-});
-};
-    document.getElementById("spin").onclick = () => {
-      resetUI();
-      const r = Math.random();
+  updateUI();
+  savePoints();
+}
 
-      if (r < 0.4) {
-        points += 10;
-        document.getElementById("result").innerText = "➕ 10 Punkte";
-      } 
-      else if (r < 0.7) {
-        currentQuestion = randomQuestion();
-        showQuestion();
-      } 
-      else {
-        document.getElementById("betBox").style.display = "block";
-        document.getElementById("result").innerText = "🎲 Risiko-Modus!";
-      }
+// Rad drehen
+document.getElementById("spin").onclick = () => {
+  resetUI();
 
-      update();
-savePoints();
-fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ points })
-});
-    };
+  const r = Math.random();
 
-    function startRisk() {
-      bet = parseInt(document.getElementById("betInput").value);
-      if (!bet || bet <= 0 || bet > points) {
-        alert("Ungültiger Einsatz");
-        return;
-      }
-      riskMode = true;
-      document.getElementById("betBox").style.display = "none";
-      currentQuestion = randomQuestion();
+  if (r < 0.4) {
+    points += 10;
+    document.getElementById("result").innerText = "➕ 10 Punkte";
+    updateUI();
+    savePoints();
+  } else if (r < 0.7) {
+    fetchQuestion(false);
+  } else {
+    document.getElementById("betBox").style.display = "block";
+    document.getElementById("result").innerText = "🎲 Risiko-Modus!";
+  }
+}
+
+// Risiko starten
+function startRisk() {
+  bet = parseInt(document.getElementById("betInput").value);
+  if (!bet || bet <= 0 || bet > points) {
+    alert("Ungültiger Einsatz");
+    return;
+  }
+  riskMode = true;
+  document.getElementById("betBox").style.display = "none";
+  fetchQuestion(true);
+}
+
+// Frage vom Backend holen
+function fetchQuestion(isRisk) {
+  fetch("https://gluecksrad-backend.onrender.com/question/random")
+    .then(res => res.json())
+    .then(q => {
+      currentQuestion = q;
       showQuestion();
+    });
+}
+
+// Frage anzeigen
+function showQuestion() {
+  const qEl = document.getElementById("question");
+  const aEl = document.getElementById("answers");
+
+  qEl.innerText = currentQuestion.question;
+  qEl.style.display = "block";
+
+  aEl.innerHTML = "";
+  aEl.style.display = "block";
+
+  currentQuestion.answers.forEach((text, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = text;
+    btn.onclick = () => answer(i);
+    aEl.appendChild(btn);
+  });
+}
+
+// Antwort prüfen
+function answer(index) {
+  if (!currentQuestion) return;
+
+  if (index === currentQuestion.correct) {
+    if (riskMode) {
+      points += bet;
+      document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
+    } else {
+      points += currentQuestion.points;
+      document.getElementById("result").innerText = `✅ Richtig! +${currentQuestion.points} Punkte`;
     }
-
-    function showQuestion() {
-      document.getElementById("questionText").innerText = currentQuestion.q;
-      document.querySelectorAll("#questionBox button").forEach((btn, i) => {
-        btn.innerText = currentQuestion.a[i];
-      });
-      document.getElementById("questionBox").style.display = "block";
+  } else {
+    if (riskMode) {
+      points -= bet;
+      document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
+    } else {
+      document.getElementById("result").innerText = "❌ Falsch!";
     }
+  }
 
-    function answer(index) {
-      if (!currentQuestion) return;
+  updateUI();
+  savePoints();
+  resetState();
+}
 
-      if (index === currentQuestion.correct) {
-        if (riskMode) {
-          points += bet;
-          document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
-        } else {
-          points += 5;
-update();
-savePoints();
-          document.getElementById("result").innerText = "✅ Richtig! +5 Punkte";
-        }
-      } else {
-        if (riskMode) {
-          points -= bet;
-update();
-savePoints();
-          document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
-        } else {
-          document.getElementById("result").innerText = "❌ Falsch!";
-        }
-      }
-
-      resetState();
-         }
-
-    function resetUI() {
-      document.getElementById("betBox").style.display = "none";
-      document.getElementById("questionBox").style.display = "none";
-      document.getElementById("result").innerText = "";
-    }
-
-    function resetState() {
-      currentQuestion = null;
-      bet = 0;
-      riskMode = false;
-      document.getElementById("questionBox").style.display = "none";
-    }
-
-    function randomQuestion() {
-      return questions[Math.floor(Math.random() * questions.length)];
-    }
+// Punkte speichern
 function savePoints() {
   fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
     method: "POST",
@@ -179,7 +149,21 @@ function savePoints() {
     body: JSON.stringify({ points })
   });
 }
-  </script>
-<script src="app.js"></script>
+
+// UI zurücksetzen, ohne Ergebnis zu löschen
+function resetUI() {
+  document.getElementById("betBox").style.display = "none";
+  document.getElementById("question").style.display = "none";
+  document.getElementById("answers").style.display = "none";
+}
+
+// State nach Antwort zurücksetzen
+function resetState() {
+  currentQuestion = null;
+  bet = 0;
+  riskMode = false;
+}
+
+</script>
 </body>
 </html>
