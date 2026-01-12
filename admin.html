@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Fragen</title>
+</head>
+<body>
+
+<h1>🛠 Fragen verwalten</h1>
+
+<input id="question" placeholder="Frage" style="width:100%"><br><br>
+
+<input id="a0" placeholder="Antwort A"><br>
+<input id="a1" placeholder="Antwort B"><br>
+<input id="a2" placeholder="Antwort C"><br><br>
+
+<label>Richtige Antwort (0–2):</label>
+<input id="correct" type="number" min="0" max="2"><br><br>
+
+<label>Punkte:</label>
+<input id="points" type="number" value="5"><br><br>
+
+<button onclick="send()">Frage speichern</button>
+
+<p id="status"></p>
+
+<script>
+const API = "https://gluecksrad-backend.onrender.com";
+
+function send() {
+  fetch(API + "/admin/question", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question: document.getElementById("question").value,
+      answers: [
+        document.getElementById("a0").value,
+        document.getElementById("a1").value,
+        document.getElementById("a2").value
+      ],
+      correct: Number(document.getElementById("correct").value),
+      points: Number(document.getElementById("points").value)
+    })
+  })
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById("status").innerText = "✅ Gespeichert";
+  })
+  .catch(() => {
+    document.getElementById("status").innerText = "❌ Fehler";
+  });
+}
+</script>
+
+</body>
+</html>
