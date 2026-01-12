@@ -6,61 +6,73 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <h1>🎡 Glücksrad</h1>
-  <button id="addPointsBtn">+10 Punkte</button>
-  <p id="username"></p>
-  <p id="points"></p>
 
-  <button id="spin">Rad drehen</button>
+<h1>🎡 Glücksrad</h1>
 
-  <div id="betBox" style="display:none;">
-    <p>Wie viele Punkte setzt du?</p>
-    <input id="betInput" type="number" min="1">
-    <button onclick="startRisk()">Einsatz bestätigen</button>
-  </div>
+<button id="addPointsBtn">+10 Punkte</button>
+<p id="username"></p>
+<p id="points"></p>
 
-  <h2 id="question" style="display:none;"></h2>
-  <div id="answers" style="display:none;"></div>
-  <p id="result"></p>
+<button id="spin">Rad drehen</button>
+
+<div id="betBox" style="display:none;">
+  <p>Wie viele Punkte setzt du?</p>
+  <input id="betInput" type="number" min="1">
+  <button onclick="startRisk()">Einsatz bestätigen</button>
+</div>
+
+<h2 id="question" style="display:none;"></h2>
+<div id="answers" style="display:none;"></div>
+
+<p id="result"></p>
+
 <h2>🏆 Leaderboard</h2>
 <ul id="leaderboard"></ul>
 
 <script>
+const API = "https://gluecksrad-backend.onrender.com";
+
 const tg = Telegram.WebApp;
-const USER_ID = "user_" + (tg.initDataUnsafe.user?.id || Math.random().toString(36).slice(2));
 tg.ready();
 
-const user = tg.initDataUnsafe.user || { username: "Gast" };
+const user = tg.initDataUnsafe.user || { username: "Gast", id: "guest_" + Math.random().toString(36).slice(2) };
+const USER_ID = "user_" + user.id;
+
 let points = 0;
 let currentQuestion = null;
 let bet = 0;
 let riskMode = false;
 
-// Punkte laden
-fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID)
-  .then(res => res.json())
-  .then(data => {
-    points = data.points ?? 0;
-    updateUI();
-  });
+// ---------------- INIT ----------------
+loadUser();
+loadLeaderboard();
+
+// ---------------- USER ----------------
+function loadUser() {
+  fetch(API + "/me/" + USER_ID)
+    .then(r => r.json())
+    .then(d => {
+      points = d.points ?? 0;
+      updateUI();
+    });
+}
 
 function updateUI() {
   document.getElementById("username").innerText = "Benutzer: " + user.username;
   document.getElementById("points").innerText = "Punkte: " + points;
 }
 
-// +10 Punkte Button
+// ---------------- POINTS ----------------
 document.getElementById("addPointsBtn").onclick = () => {
   points += 10;
+  savePoints();
   document.getElementById("result").innerText = "➕ 10 Punkte";
   updateUI();
-  savePoints();
-}
+};
 
-// Rad drehen
+// ---------------- SPIN ----------------
 document.getElementById("spin").onclick = () => {
   resetUI();
-
   const r = Math.random();
 
   if (r < 0.4) {
@@ -69,14 +81,14 @@ document.getElementById("spin").onclick = () => {
     updateUI();
     savePoints();
   } else if (r < 0.7) {
-    fetchQuestion(false);
+    fetchQuestion();
   } else {
     document.getElementById("betBox").style.display = "block";
     document.getElementById("result").innerText = "🎲 Risiko-Modus!";
   }
-}
+};
 
-// Risiko starten
+// ---------------- RISK ----------------
 function startRisk() {
   bet = parseInt(document.getElementById("betInput").value);
   if (!bet || bet <= 0 || bet > points) {
@@ -85,39 +97,37 @@ function startRisk() {
   }
   riskMode = true;
   document.getElementById("betBox").style.display = "none";
-  fetchQuestion(true);
+  fetchQuestion();
 }
 
-// Frage vom Backend holen
-function fetchQuestion(isRisk) {
-  fetch("https://gluecksrad-backend.onrender.com/question/random")
-    .then(res => res.json())
+// ---------------- QUESTIONS ----------------
+function fetchQuestion() {
+  fetch(API + "/question/random")
+    .then(r => r.json())
     .then(q => {
       currentQuestion = q;
       showQuestion();
     });
 }
 
-// Frage anzeigen
 function showQuestion() {
-  const qEl = document.getElementById("question");
-  const aEl = document.getElementById("answers");
+  const q = document.getElementById("question");
+  const a = document.getElementById("answers");
 
-  qEl.innerText = currentQuestion.question;
-  qEl.style.display = "block";
+  q.innerText = currentQuestion.question;
+  q.style.display = "block";
 
-  aEl.innerHTML = "";
-  aEl.style.display = "block";
+  a.innerHTML = "";
+  a.style.display = "block";
 
   currentQuestion.answers.forEach((text, i) => {
     const btn = document.createElement("button");
     btn.innerText = text;
     btn.onclick = () => answer(i);
-    aEl.appendChild(btn);
+    a.appendChild(btn);
   });
 }
 
-// Antwort prüfen
 function answer(index) {
   if (!currentQuestion) return;
 
@@ -127,7 +137,7 @@ function answer(index) {
       document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
     } else {
       points += currentQuestion.points;
-      document.getElementById("result").innerText = `✅ Richtig! +${currentQuestion.points} Punkte`;
+      document.getElementById("result").innerText = "✅ Richtig!";
     }
   } else {
     if (riskMode) {
@@ -138,34 +148,47 @@ function answer(index) {
     }
   }
 
-  updateUI();
   savePoints();
+  updateUI();
+  loadLeaderboard();
   resetState();
 }
 
-// Punkte speichern
+// ---------------- BACKEND ----------------
 function savePoints() {
-  fetch("https://gluecksrad-backend.onrender.com/me/" + USER_ID, {
+  fetch(API + "/me/" + USER_ID, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ points })
   });
 }
 
-// UI zurücksetzen, ohne Ergebnis zu löschen
+function loadLeaderboard() {
+  fetch(API + "/leaderboard")
+    .then(r => r.json())
+    .then(data => {
+      const list = document.getElementById("leaderboard");
+      list.innerHTML = "";
+      data.forEach((u, i) => {
+        const li = document.createElement("li");
+        li.innerText = `${i + 1}. ${u.id} – ${u.points}`;
+        list.appendChild(li);
+      });
+    });
+}
+
+// ---------------- RESET ----------------
 function resetUI() {
   document.getElementById("betBox").style.display = "none";
   document.getElementById("question").style.display = "none";
   document.getElementById("answers").style.display = "none";
 }
 
-// State nach Antwort zurücksetzen
 function resetState() {
   currentQuestion = null;
   bet = 0;
   riskMode = false;
 }
-
 </script>
 </body>
 </html>
