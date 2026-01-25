@@ -86,6 +86,12 @@ button:hover {
     <div class="tile" onclick="openClicker()">🖱 Clicker</div>
   </div>
 </div>
+<!-- ===== LEADERBOARD SEITE ===== -->
+<div id="leaderboardView" style="display:none;">
+  <button onclick="goHome()">⬅ Zurück</button>
+  <h1>🏆 Leaderboard</h1>
+  <ul id="leaderboardOnly"></ul>
+</div>
 
 <!-- ===== SPIELANSICHT (dein bisheriges Spiel) ===== -->
 <div id="gameView" style="display:none">
@@ -109,8 +115,6 @@ button:hover {
 
 <p id="result"></p>
 
-<h2>🏆 Leaderboard</h2>
-<ul id="leaderboard"></ul>
 
 </div>
 
@@ -301,8 +305,8 @@ function hideAllViews() {
 
 function openLeaderboard() {
   hideAllViews();
-  document.getElementById("gameView").style.display = "block";
-  loadLeaderboard();
+  document.getElementById("leaderboardView").style.display = "block";
+  loadLeaderboardOnly();
 }
 
 function openDaily() {
@@ -326,7 +330,30 @@ function openRisk() {
 function openClicker() {
   alert("Clicker kommt im nächsten Schritt 😄");
 }
+function loadLeaderboardOnly() {
+  fetch(API + "/leaderboard")
+    .then(r => r.json())
+    .then(data => {
+      const list = document.getElementById("leaderboardOnly");
+      list.innerHTML = "";
 
+      data.forEach((u, i) => {
+        const li = document.createElement("li");
+
+        let medal = "";
+        if (i === 0) medal = "🥇 ";
+        if (i === 1) medal = "🥈 ";
+        if (i === 2) medal = "🥉 ";
+
+        li.innerText = `${medal}${i + 1}. ${u.name} – ${u.points}`;
+        list.appendChild(li);
+      });
+    });
+}
+function goHome() {
+  hideAllViews();
+  document.getElementById("homeView").style.display = "block";
+}
 </script>
 </body>
 </html>
