@@ -47,10 +47,48 @@ button:hover {
   font-weight: bold;
   margin-top: 10px;
 }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.tile {
+  background: #4f46e5;
+  color: white;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 18px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tile:hover {
+  background: #4338ca;
+}
+
 </style>
 
 </head>
 <body>
+
+<!-- ===== STARTSEITE ===== -->
+<div id="homeView">
+  <h1>🎮 Spielzentrum</h1>
+
+  <div class="grid">
+    <div class="tile" onclick="openLeaderboard()">🏆 Leaderboard</div>
+    <div class="tile" onclick="openDaily()">🎡 Tagesrad</div>
+    <div class="tile" onclick="openEndless()">♾️ Endlos</div>
+    <div class="tile" onclick="openRisk()">💣 Risiko</div>
+    <div class="tile" onclick="openClicker()">🖱 Clicker</div>
+  </div>
+</div>
+
+<!-- ===== SPIELANSICHT (dein bisheriges Spiel) ===== -->
+<div id="gameView" style="display:none">
 
 <h1>🎡 Glücksrad</h1>
 
@@ -73,6 +111,8 @@ button:hover {
 
 <h2>🏆 Leaderboard</h2>
 <ul id="leaderboard"></ul>
+
+</div>
 
 <script>
 const API = "https://gluecksrad-backend.onrender.com";
@@ -253,6 +293,40 @@ function resetState() {
   bet = 0;
   riskMode = false;
 }
+// ---------- NAVIGATION ----------
+function hideAllViews() {
+  document.getElementById("homeView").style.display = "none";
+  document.getElementById("gameView").style.display = "none";
+}
+
+function openLeaderboard() {
+  hideAllViews();
+  document.getElementById("gameView").style.display = "block";
+  loadLeaderboard();
+}
+
+function openDaily() {
+  hideAllViews();
+  document.getElementById("gameView").style.display = "block";
+  fetchQuestion(); // später: 1x täglich
+}
+
+function openEndless() {
+  hideAllViews();
+  document.getElementById("gameView").style.display = "block";
+  fetchQuestion(); // +3 Punkte später
+}
+
+function openRisk() {
+  hideAllViews();
+  document.getElementById("gameView").style.display = "block";
+  document.getElementById("betBox").style.display = "block";
+}
+
+function openClicker() {
+  alert("Clicker kommt im nächsten Schritt 😄");
+}
+
 </script>
 </body>
 </html>
