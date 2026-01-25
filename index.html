@@ -134,7 +134,7 @@ let riskMode = false;
 
 // ---------------- INIT ----------------
 loadUser();
-loadLeaderboard();
+// loadLeaderboard(); // ❌ nicht beim Start
 
 // ---------------- USER ----------------
 function loadUser() {
@@ -301,6 +301,7 @@ function resetState() {
 function hideAllViews() {
   document.getElementById("homeView").style.display = "none";
   document.getElementById("gameView").style.display = "none";
+  document.getElementById("leaderboardView").style.display = "none";
 }
 
 function openLeaderboard() {
@@ -351,10 +352,8 @@ function loadLeaderboardOnly() {
     });
 }
 function goHome() {
- function hideAllViews() {
-  document.getElementById("homeView").style.display = "none";
-  document.getElementById("gameView").style.display = "none";
-  document.getElementById("leaderboardView").style.display = "none";
+  hideAllViews();
+  document.getElementById("homeView").style.display = "block";
 }
 
 </script>
