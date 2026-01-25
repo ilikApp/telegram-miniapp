@@ -143,8 +143,10 @@ function endlessAnswered() {
 
 function markEndlessAnswered(id) {
   const list = endlessAnswered();
-  list.push(id);
-  localStorage.setItem("endless_answered", JSON.stringify(list));
+  if (!list.includes(id)) {
+    list.push(id);
+    localStorage.setItem("endless_answered", JSON.stringify(list));
+  }
 }
 
 function resetEndlessIfNeeded() {
@@ -243,24 +245,21 @@ function fetchEndlessQuestion() {
     .then(q => {
       const answered = endlessAnswered();
 
+      // ❌ Frage schon beantwortet → ENDE
       if (answered.includes(q.id)) {
-        // nochmal versuchen
-        fetchEndlessQuestion();
+        document.getElementById("question").style.display = "none";
+        document.getElementById("answers").style.display = "none";
+
+        document.getElementById("result").innerText =
+          "😴 Du hast alle verfügbaren Fragen beantwortet.\n" +
+          "Komm in ein paar Tagen wieder oder geh zurück ⬅";
+
         return;
       }
 
       currentQuestion = q;
       showQuestion();
-    })
-   .catch(() => {
-  document.getElementById("question").style.display = "none";
-  document.getElementById("answers").style.display = "none";
-
-  document.getElementById("result").innerText =
-    "😴 Du hast alle verfügbaren Fragen beantwortet.\nKomm später wieder oder geh zurück ⬅";
-
-});
-
+    });
 }
 
 function showQuestion() {
@@ -282,86 +281,70 @@ function showQuestion() {
 }
 
 function answer(index) {
-if (currentMode === "endless") {
   if (!currentQuestion) return;
 
+  // ================= ENDLOS =================
+  if (currentMode === "endless") {
+    // Buttons sofort deaktivieren (kein Spam-Klicken)
+    document.querySelectorAll("#answers button").forEach(b => b.disabled = true);
+
+    if (index === currentQuestion.correct) {
+      points += 3;
+      document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+    } else {
+      document.getElementById("result").innerText = "❌ Falsch!";
+    }
+
+    markEndlessAnswered(currentQuestion.id);
+
+    savePoints().then(() => {
+      updateUI();
+      setTimeout(fetchEndlessQuestion, 800);
+    });
+
+    return; // ⛔ GANZ WICHTIG
+  }
+
+  // ================= DAILY / NORMAL =================
   if (index === currentQuestion.correct) {
-    points += 3;
-    document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+
+    if (currentMode === "daily") {
+      points += 10;
+      document.getElementById("result").innerText =
+        "🎡 Tagesrad geschafft! +10 Punkte";
+      markDailyPlayed();
+      document.getElementById("spin").disabled = true;
+    }
+
+    else if (riskMode) {
+      points += bet;
+      document.getElementById("result").innerText =
+        "🔥 Richtig! Einsatz gewonnen";
+    }
+
+    else {
+      points += currentQuestion.points;
+      document.getElementById("result").innerText = "✅ Richtig!";
+    }
+
   } else {
-    document.getElementById("result").innerText = "❌ Falsch!";
-  }
-
-  markEndlessAnswered(currentQuestion.id);
-
-  savePoints().then(() => {
-    updateUI();
-    setTimeout(fetchEndlessQuestion, 800);
-  });
-
-  return; // ⛔ WICHTIG: stoppt Tagesrad & Risiko
-}
-
- if (!currentQuestion) return;
-
-if (index === currentQuestion.correct) {
-if (currentMode === "endless") {
-  if (index === currentQuestion.correct) {
-    points += 3;
-    document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
-  } else {
-    document.getElementById("result").innerText = "❌ Falsch!";
-  }
-
-  markEndlessAnswered(currentQuestion.id);
-  savePoints().then(() => {
-    updateUI();
-    setTimeout(fetchEndlessQuestion, 800);
-  });
-
-  return; // ⛔ GANZ WICHTIG: hier abbrechen
-}
-
- if (currentMode === "daily") {
-  points += 10;
-  document.getElementById("result").innerText = "🎡 Tagesrad geschafft! +10 Punkte";
-  markDailyPlayed();
-
-  // ❌ Tagesrad darf NICHT nochmal benutzt werden
-  document.getElementById("spin").disabled = true;
-}
-
-  else if (riskMode) {
-    points += bet;
-    document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
-  }
-
-  else {
-    points += currentQuestion.points;
-    document.getElementById("result").innerText = "✅ Richtig!";
-  }
-}
- else {
     if (riskMode) {
       points -= bet;
-      document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
+      document.getElementById("result").innerText =
+        "💥 Falsch! Einsatz verloren";
     } else {
       document.getElementById("result").innerText = "❌ Falsch!";
     }
   }
 
-savePoints().then(() => {
-  updateUI();
-  loadLeaderboard();
-  resetState();
+  savePoints().then(() => {
+    updateUI();
+    resetState();
 
-  if (currentMode === "daily") {
-    setTimeout(goHome, 1200);
-  }
-if (currentMode === "endless") {
-  setTimeout(fetchEndlessQuestion, 800);
-}
-});
+    if (currentMode === "daily") {
+      setTimeout(goHome, 1200);
+    }
+  });
 }
 
 // ---------------- BACKEND ----------------
