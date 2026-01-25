@@ -281,9 +281,20 @@ function answer(index) {
 
 if (index === currentQuestion.correct) {
 if (currentMode === "endless") {
-  points += 3;
+  if (index === currentQuestion.correct) {
+    points += 3;
+    document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+  } else {
+    document.getElementById("result").innerText = "❌ Falsch!";
+  }
+
   markEndlessAnswered(currentQuestion.id);
-  document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+  savePoints().then(() => {
+    updateUI();
+    setTimeout(fetchEndlessQuestion, 800);
+  });
+
+  return; // ⛔ GANZ WICHTIG: hier abbrechen
 }
 
   if (currentMode === "daily") {
@@ -397,6 +408,7 @@ function openDaily() {
     goHome();
     return;
   }
+document.getElementById("spin").style.display = "block";
 
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
@@ -410,6 +422,10 @@ function openEndless() {
 
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
+
+  // ❌ Spin & Risiko ausblenden
+  document.getElementById("spin").style.display = "none";
+  document.getElementById("betBox").style.display = "none";
 
   currentMode = "endless";
   fetchEndlessQuestion();
