@@ -148,15 +148,16 @@ function answer(index) {
     }
   }
 
-  savePoints();
+savePoints().then(() => {
   updateUI();
   loadLeaderboard();
   resetState();
+});
 }
 
 // ---------------- BACKEND ----------------
 function savePoints() {
-  fetch(API + "/me/" + USER_ID, {
+  return fetch(API + "/me/" + USER_ID, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -166,6 +167,7 @@ function savePoints() {
   });
 }
 
+
 function loadLeaderboard() {
   fetch(API + "/leaderboard")
     .then(r => r.json())
@@ -174,7 +176,7 @@ function loadLeaderboard() {
       list.innerHTML = "";
       data.forEach((u, i) => {
         const li = document.createElement("li");
-        li.innerText = `${i + 1}. ${u.id} – ${u.points}`;
+li.innerText = `${i + 1}. ${u.name} – ${u.points}`;
         list.appendChild(li);
       });
     });
