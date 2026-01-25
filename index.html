@@ -132,6 +132,30 @@ let currentQuestion = null;
 let bet = 0;
 let riskMode = false;
 let currentMode = null; // daily | endless | risk
+
+// ---------- ENDLESS LOGIC ----------
+const ENDLESS_RESET_DAYS = 5;
+
+function endlessAnswered() {
+  return JSON.parse(localStorage.getItem("endless_answered") || "[]");
+}
+
+function markEndlessAnswered(id) {
+  const list = endlessAnswered();
+  list.push(id);
+  localStorage.setItem("endless_answered", JSON.stringify(list));
+}
+
+function resetEndlessIfNeeded() {
+  const last = localStorage.getItem("endless_reset");
+  const now = Date.now();
+
+  if (!last || now - Number(last) > ENDLESS_RESET_DAYS * 24 * 60 * 60 * 1000) {
+    localStorage.removeItem("endless_answered");
+    localStorage.setItem("endless_reset", now);
+  }
+}
+
 // ---------- DAILY LOGIC ----------
 function todayKey() {
   const d = new Date();
@@ -253,14 +277,14 @@ function showQuestion() {
 }
 
 function answer(index) {
-  if (currentMode === "endless") {
+ if (!currentQuestion) return;
+
+if (index === currentQuestion.correct) {
+if (currentMode === "endless") {
   points += 3;
   markEndlessAnswered(currentQuestion.id);
   document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
 }
-if (!currentQuestion) return;
-
-if (index === currentQuestion.correct) {
 
   if (currentMode === "daily") {
     points += 10;
@@ -373,28 +397,6 @@ function openDaily() {
     goHome();
     return;
   }
-// ---------- ENDLESS LOGIC ----------
-const ENDLESS_RESET_DAYS = 5;
-
-function endlessAnswered() {
-  return JSON.parse(localStorage.getItem("endless_answered") || "[]");
-}
-
-function markEndlessAnswered(id) {
-  const list = endlessAnswered();
-  list.push(id);
-  localStorage.setItem("endless_answered", JSON.stringify(list));
-}
-
-function resetEndlessIfNeeded() {
-  const last = localStorage.getItem("endless_reset");
-  const now = Date.now();
-
-  if (!last || now - Number(last) > ENDLESS_RESET_DAYS * 24 * 60 * 60 * 1000) {
-    localStorage.removeItem("endless_answered");
-    localStorage.setItem("endless_reset", now);
-  }
-}
 
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
