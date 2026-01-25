@@ -95,6 +95,7 @@ button:hover {
 
 <!-- ===== SPIELANSICHT (dein bisheriges Spiel) ===== -->
 <div id="gameView" style="display:none">
+<button id="backBtn" style="display:none;" onclick="goHome()">⬅ Zurück</button>
 
 <h1>🎡 Glücksrad</h1>
 
@@ -251,11 +252,15 @@ function fetchEndlessQuestion() {
       currentQuestion = q;
       showQuestion();
     })
-    .catch(() => {
-      document.getElementById("result").innerText =
-        "😴 Du hast alle verfügbaren Fragen beantwortet. Komm später wieder!";
-      setTimeout(goHome, 1500);
-    });
+   .catch(() => {
+  document.getElementById("question").style.display = "none";
+  document.getElementById("answers").style.display = "none";
+
+  document.getElementById("result").innerText =
+    "😴 Du hast alle verfügbaren Fragen beantwortet.\nKomm später wieder oder geh zurück ⬅";
+
+});
+
 }
 
 function showQuestion() {
@@ -277,6 +282,26 @@ function showQuestion() {
 }
 
 function answer(index) {
+if (currentMode === "endless") {
+  if (!currentQuestion) return;
+
+  if (index === currentQuestion.correct) {
+    points += 3;
+    document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+  } else {
+    document.getElementById("result").innerText = "❌ Falsch!";
+  }
+
+  markEndlessAnswered(currentQuestion.id);
+
+  savePoints().then(() => {
+    updateUI();
+    setTimeout(fetchEndlessQuestion, 800);
+  });
+
+  return; // ⛔ WICHTIG: stoppt Tagesrad & Risiko
+}
+
  if (!currentQuestion) return;
 
 if (index === currentQuestion.correct) {
@@ -297,11 +322,14 @@ if (currentMode === "endless") {
   return; // ⛔ GANZ WICHTIG: hier abbrechen
 }
 
-  if (currentMode === "daily") {
-    points += 10;
-    document.getElementById("result").innerText = "🎡 Tagesrad geschafft! +10 Punkte";
-    markDailyPlayed();
-  }
+ if (currentMode === "daily") {
+  points += 10;
+  document.getElementById("result").innerText = "🎡 Tagesrad geschafft! +10 Punkte";
+  markDailyPlayed();
+
+  // ❌ Tagesrad darf NICHT nochmal benutzt werden
+  document.getElementById("spin").disabled = true;
+}
 
   else if (riskMode) {
     points += bet;
@@ -423,11 +451,17 @@ function openEndless() {
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
 
-  // ❌ Spin & Risiko ausblenden
+  // ❌ NICHT erlaubte Sachen im Endlos
   document.getElementById("spin").style.display = "none";
   document.getElementById("betBox").style.display = "none";
+  document.getElementById("addPointsBtn").style.display = "none";
+
+  // ✅ Zurück-Button anzeigen
+  document.getElementById("backBtn").style.display = "block";
 
   currentMode = "endless";
+  document.getElementById("result").innerText = "";
+
   fetchEndlessQuestion();
 }
 
@@ -462,6 +496,13 @@ function loadLeaderboardOnly() {
 }
 function goHome() {
   hideAllViews();
+
+  // Alles zurücksetzen
+  document.getElementById("spin").style.display = "block";
+  document.getElementById("addPointsBtn").style.display = "block";
+  document.getElementById("backBtn").style.display = "none";
+  document.getElementById("spin").disabled = false;
+
   document.getElementById("homeView").style.display = "block";
 }
 
