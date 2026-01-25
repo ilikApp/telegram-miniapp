@@ -131,6 +131,20 @@ let points = 0;
 let currentQuestion = null;
 let bet = 0;
 let riskMode = false;
+let currentMode = null; // daily | endless | risk
+// ---------- DAILY LOGIC ----------
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+
+function hasPlayedDaily() {
+  return localStorage.getItem("daily_" + todayKey()) === "yes";
+}
+
+function markDailyPlayed() {
+  localStorage.setItem("daily_" + todayKey(), "yes");
+}
 
 // ---------------- INIT ----------------
 loadUser();
@@ -220,15 +234,25 @@ function showQuestion() {
 function answer(index) {
   if (!currentQuestion) return;
 
-  if (index === currentQuestion.correct) {
-    if (riskMode) {
-      points += bet;
-      document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
-    } else {
-      points += currentQuestion.points;
-      document.getElementById("result").innerText = "✅ Richtig!";
-    }
-  } else {
+if (index === currentQuestion.correct) {
+
+  if (currentMode === "daily") {
+    points += 10;
+    document.getElementById("result").innerText = "🎡 Tagesrad geschafft! +10 Punkte";
+    markDailyPlayed();
+  }
+
+  else if (riskMode) {
+    points += bet;
+    document.getElementById("result").innerText = "🔥 Richtig! Einsatz gewonnen";
+  }
+
+  else {
+    points += currentQuestion.points;
+    document.getElementById("result").innerText = "✅ Richtig!";
+  }
+}
+ else {
     if (riskMode) {
       points -= bet;
       document.getElementById("result").innerText = "💥 Falsch! Einsatz verloren";
@@ -241,6 +265,10 @@ savePoints().then(() => {
   updateUI();
   loadLeaderboard();
   resetState();
+
+  if (currentMode === "daily") {
+    setTimeout(goHome, 1200);
+  }
 });
 }
 
@@ -311,9 +339,17 @@ function openLeaderboard() {
 }
 
 function openDaily() {
+  if (hasPlayedDaily()) {
+    alert("🎡 Du hast das Tagesrad heute schon gespielt!");
+    goHome();
+    return;
+  }
+
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
-  fetchQuestion(); // später: 1x täglich
+
+  currentMode = "daily";
+  fetchQuestion();
 }
 
 function openEndless() {
