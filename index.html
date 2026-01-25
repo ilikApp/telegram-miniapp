@@ -351,9 +351,12 @@ function loadLeaderboardOnly() {
     });
 }
 function goHome() {
-  hideAllViews();
-  document.getElementById("homeView").style.display = "block";
+ function hideAllViews() {
+  document.getElementById("homeView").style.display = "none";
+  document.getElementById("gameView").style.display = "none";
+  document.getElementById("leaderboardView").style.display = "none";
 }
+
 </script>
 </body>
 </html>
