@@ -212,6 +212,27 @@ function fetchQuestion() {
       showQuestion();
     });
 }
+function fetchEndlessQuestion() {
+  fetch(API + "/question/random")
+    .then(r => r.json())
+    .then(q => {
+      const answered = endlessAnswered();
+
+      if (answered.includes(q.id)) {
+        // nochmal versuchen
+        fetchEndlessQuestion();
+        return;
+      }
+
+      currentQuestion = q;
+      showQuestion();
+    })
+    .catch(() => {
+      document.getElementById("result").innerText =
+        "😴 Du hast alle verfügbaren Fragen beantwortet. Komm später wieder!";
+      setTimeout(goHome, 1500);
+    });
+}
 
 function showQuestion() {
   const q = document.getElementById("question");
@@ -232,7 +253,12 @@ function showQuestion() {
 }
 
 function answer(index) {
-  if (!currentQuestion) return;
+  if (currentMode === "endless") {
+  points += 3;
+  markEndlessAnswered(currentQuestion.id);
+  document.getElementById("result").innerText = "♾️ Richtig! +3 Punkte";
+}
+if (!currentQuestion) return;
 
 if (index === currentQuestion.correct) {
 
@@ -269,6 +295,9 @@ savePoints().then(() => {
   if (currentMode === "daily") {
     setTimeout(goHome, 1200);
   }
+if (currentMode === "endless") {
+  setTimeout(fetchEndlessQuestion, 800);
+}
 });
 }
 
@@ -344,6 +373,28 @@ function openDaily() {
     goHome();
     return;
   }
+// ---------- ENDLESS LOGIC ----------
+const ENDLESS_RESET_DAYS = 5;
+
+function endlessAnswered() {
+  return JSON.parse(localStorage.getItem("endless_answered") || "[]");
+}
+
+function markEndlessAnswered(id) {
+  const list = endlessAnswered();
+  list.push(id);
+  localStorage.setItem("endless_answered", JSON.stringify(list));
+}
+
+function resetEndlessIfNeeded() {
+  const last = localStorage.getItem("endless_reset");
+  const now = Date.now();
+
+  if (!last || now - Number(last) > ENDLESS_RESET_DAYS * 24 * 60 * 60 * 1000) {
+    localStorage.removeItem("endless_answered");
+    localStorage.setItem("endless_reset", now);
+  }
+}
 
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
@@ -353,9 +404,13 @@ function openDaily() {
 }
 
 function openEndless() {
+  resetEndlessIfNeeded();
+
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
-  fetchQuestion(); // +3 Punkte später
+
+  currentMode = "endless";
+  fetchEndlessQuestion();
 }
 
 function openRisk() {
