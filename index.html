@@ -156,10 +156,13 @@ function answer(index) {
 
 // ---------------- BACKEND ----------------
 function savePoints() {
-  fetch(API + "/me/" + USER_ID, {
+  fetch(API + "/me/" + USER_ID + "?name=" + encodeURIComponent(user.username))
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ points })
+   body: JSON.stringify({
+  points,
+  name: user.username
+})
   });
 }
 
