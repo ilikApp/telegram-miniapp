@@ -345,9 +345,6 @@ if (currentMode === "daily") {
     updateUI();
     resetState();
 
-    if (currentMode === "daily") {
-      setTimeout(goHome, 1200);
-    }
   });
 }
 
@@ -449,7 +446,6 @@ function openEndless() {
   // ❌ NICHT erlaubte Sachen im Endlos
   document.getElementById("spin").style.display = "none";
   document.getElementById("betBox").style.display = "none";
-  document.getElementById("addPointsBtn").style.display = "none";
 
   // ✅ Zurück-Button anzeigen
   document.getElementById("backBtn").style.display = "block";
@@ -490,14 +486,27 @@ function loadLeaderboardOnly() {
     });
 }
 function goHome() {
-  hideAllViews();
+  // Zustand komplett zurücksetzen
+  currentMode = null;
+  riskMode = false;
+  currentQuestion = null;
+  bet = 0;
 
-  // Alles zurücksetzen
+  // Views verstecken
+  document.getElementById("homeView").style.display = "none";
+  document.getElementById("gameView").style.display = "none";
+  document.getElementById("leaderboardView").style.display = "none";
+
+  // Game-UI reset
   document.getElementById("spin").style.display = "block";
-  document.getElementById("addPointsBtn").style.display = "block";
-  document.getElementById("backBtn").style.display = "none";
   document.getElementById("spin").disabled = false;
+  document.getElementById("betBox").style.display = "none";
+  document.getElementById("backBtn").style.display = "none";
+  document.getElementById("question").style.display = "none";
+  document.getElementById("answers").style.display = "none";
+  document.getElementById("result").innerText = "";
 
+  // Startseite zeigen
   document.getElementById("homeView").style.display = "block";
 }
 
