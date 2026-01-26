@@ -69,6 +69,19 @@ button:hover {
   background: #4338ca;
 }
 
+#clickerBtn {
+  background: #dc2626;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  font-size: 28px;
+  margin-top: 30px;
+}
+
+#clickerBtn:hover {
+  background: #b91c1c;
+}
+
 </style>
 
 </head>
@@ -116,6 +129,16 @@ button:hover {
 <p id="result"></p>
 
 
+</div>
+
+<!-- ===== CLICKER SEITE ===== -->
+<div id="clickerView" style="display:none; text-align:center; margin-top:40px;">
+  <button onclick="goHome()">⬅ Zurück</button>
+
+  <h1>🖱 Clicker</h1>
+  <p id="clickerPoints">Punkte: 0</p>
+
+  <button id="clickerBtn">🔴 KLICK</button>
 </div>
 
 <script>
@@ -509,7 +532,11 @@ function openRisk() {
 }
 
 function openClicker() {
-  alert("Clicker kommt im nächsten Schritt 😄");
+  hideAllViews();
+  document.getElementById("clickerView").style.display = "block";
+
+  document.getElementById("clickerPoints").innerText =
+    "Punkte: " + points;
 }
 function loadLeaderboardOnly() {
   fetch(API + "/leaderboard")
@@ -551,10 +578,20 @@ function goHome() {
   document.getElementById("question").style.display = "none";
   document.getElementById("answers").style.display = "none";
   document.getElementById("result").innerText = "";
+document.getElementById("clickerView").style.display = "none";
 
   // Startseite zeigen
   document.getElementById("homeView").style.display = "block";
 }
+document.getElementById("clickerBtn").onclick = () => {
+  points += 0.5;
+
+  document.getElementById("clickerPoints").innerText =
+    "Punkte: " + points.toFixed(1);
+
+  updateUI();
+  savePoints();
+};
 
 </script>
 </body>
