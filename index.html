@@ -99,7 +99,6 @@ button:hover {
 
 <h1>🎡 Glücksrad</h1>
 
-<button id="addPointsBtn">+10 Punkte</button>
 <p id="username"></p>
 <p id="points"></p>
 
@@ -192,16 +191,13 @@ function updateUI() {
   document.getElementById("points").innerText = "Punkte: " + points;
 }
 
-// ---------------- POINTS ----------------
-document.getElementById("addPointsBtn").onclick = () => {
-  points += 10;
-  savePoints();
-  document.getElementById("result").innerText = "➕ 10 Punkte";
-  updateUI();
-};
 
 // ---------------- SPIN ----------------
 document.getElementById("spin").onclick = () => {
+  if (currentMode === "daily" || currentMode === "endless") {
+    return; // ❌ dort nicht erlaubt
+  }
+
   resetUI();
   const r = Math.random();
 
@@ -220,11 +216,17 @@ document.getElementById("spin").onclick = () => {
 
 // ---------------- RISK ----------------
 function startRisk() {
+  if (currentMode === "daily") {
+    alert("💣 Risiko ist im Tagesrad nicht erlaubt!");
+    return;
+  }
+
   bet = parseInt(document.getElementById("betInput").value);
   if (!bet || bet <= 0 || bet > points) {
     alert("Ungültiger Einsatz");
     return;
   }
+
   riskMode = true;
   document.getElementById("betBox").style.display = "none";
   fetchQuestion();
@@ -308,13 +310,15 @@ function answer(index) {
   // ================= DAILY / NORMAL =================
   if (index === currentQuestion.correct) {
 
-    if (currentMode === "daily") {
-      points += 10;
-      document.getElementById("result").innerText =
-        "🎡 Tagesrad geschafft! +10 Punkte";
-      markDailyPlayed();
-      document.getElementById("spin").disabled = true;
-    }
+if (currentMode === "daily") {
+  points += 10;
+  document.getElementById("result").innerText =
+    "🎡 Tagesrad geschafft! +10 Punkte\n⬅ Geh selbst zurück";
+  markDailyPlayed();
+
+  // ❌ keine weitere Frage
+  document.getElementById("answers").style.display = "none";
+}
 
     else if (riskMode) {
       points += bet;
@@ -416,17 +420,25 @@ function openLeaderboard() {
 function openDaily() {
   if (hasPlayedDaily()) {
     alert("🎡 Du hast das Tagesrad heute schon gespielt!");
-    goHome();
     return;
   }
-document.getElementById("spin").style.display = "block";
 
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
 
+  // ❌ alles verbieten
+  document.getElementById("spin").style.display = "none";
+  document.getElementById("betBox").style.display = "none";
+
+  // ✅ Zurück-Button anzeigen
+  document.getElementById("backBtn").style.display = "block";
+
   currentMode = "daily";
-  fetchQuestion();
+  document.getElementById("result").innerText = "";
+
+  fetchQuestion(); // 🎯 NUR FRAGE
 }
+
 
 function openEndless() {
   resetEndlessIfNeeded();
