@@ -106,7 +106,7 @@ button:hover {
 
 <div id="betBox" style="display:none;">
   <p>Wie viele Punkte setzt du?</p>
-  <input id="betInput" type="number" min="1">
+  <input id="betInput" type="number" min="1" max="100">
   <button onclick="startRisk()">Einsatz bestätigen</button>
 </div>
 
@@ -208,26 +208,28 @@ document.getElementById("spin").onclick = () => {
     savePoints();
   } else if (r < 0.7) {
     fetchQuestion();
-  } else {
-    document.getElementById("betBox").style.display = "block";
-    document.getElementById("result").innerText = "🎲 Risiko-Modus!";
   }
 };
 
 // ---------------- RISK ----------------
 function startRisk() {
-  if (currentMode === "daily") {
-    alert("💣 Risiko ist im Tagesrad nicht erlaubt!");
-    return;
-  }
-
   bet = parseInt(document.getElementById("betInput").value);
-  if (!bet || bet <= 0 || bet > points) {
+
+  if (!bet || bet <= 0) {
     alert("Ungültiger Einsatz");
     return;
   }
 
-  riskMode = true;
+  if (bet > 100) {
+    alert("💣 Maximaler Einsatz sind 100 Punkte!");
+    return;
+  }
+
+  if (bet > points) {
+    alert("Du hast nicht genug Punkte!");
+    return;
+  }
+
   document.getElementById("betBox").style.display = "none";
   fetchQuestion();
 }
@@ -320,11 +322,20 @@ if (currentMode === "daily") {
   document.getElementById("answers").style.display = "none";
 }
 
-    else if (riskMode) {
-      points += bet;
-      document.getElementById("result").innerText =
-        "🔥 Richtig! Einsatz gewonnen";
-    }
+else if (currentMode === "risk") {
+  if (index === currentQuestion.correct) {
+    points += bet;
+    document.getElementById("result").innerText =
+      "🔥 Richtig! +" + bet + " Punkte";
+  } else {
+    points -= bet;
+    document.getElementById("result").innerText =
+      "💥 Falsch! -" + bet + " Punkte";
+  }
+
+  markRiskPlayed();
+  document.getElementById("answers").style.display = "none";
+}
 
     else {
       points += currentQuestion.points;
@@ -346,6 +357,20 @@ if (currentMode === "daily") {
     resetState();
 
   });
+}
+
+// ---------- RISK DAILY LOGIC ----------
+function riskKey() {
+  const d = new Date();
+  return "risk_" + d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+
+function hasPlayedRisk() {
+  return localStorage.getItem(riskKey()) === "yes";
+}
+
+function markRiskPlayed() {
+  localStorage.setItem(riskKey(), "yes");
 }
 
 // ---------------- BACKEND ----------------
@@ -457,9 +482,30 @@ function openEndless() {
 }
 
 function openRisk() {
+  if (hasPlayedRisk()) {
+    alert("💣 Risiko hast du heute schon gespielt!");
+    return;
+  }
+
   hideAllViews();
   document.getElementById("gameView").style.display = "block";
+
+  // ❌ alles andere AUS
+  document.getElementById("spin").style.display = "none";
+  document.getElementById("answers").style.display = "none";
+  document.getElementById("question").style.display = "none";
+
+  // ✅ Einsatz anzeigen
   document.getElementById("betBox").style.display = "block";
+
+  // ✅ Zurück-Button
+  document.getElementById("backBtn").style.display = "block";
+
+  currentMode = "risk";
+  riskMode = true;
+
+  document.getElementById("result").innerText =
+    "💣 Setze Punkte und beantworte eine Frage!";
 }
 
 function openClicker() {
