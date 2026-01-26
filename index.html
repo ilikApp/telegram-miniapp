@@ -81,6 +81,26 @@ button:hover {
 #clickerBtn:hover {
   background: #b91c1c;
 }
+#clickerBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: ripple 600ms linear;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
 
 </style>
 
@@ -424,7 +444,7 @@ if (i === 0) medal = "🥇 ";
 if (i === 1) medal = "🥈 ";
 if (i === 2) medal = "🥉 ";
 
-if (u.id === USER_ID) {
+if (u.name === user.username) {
   li.innerHTML = `${medal}⭐ <b>${i + 1}. ${u.name} – ${u.points}</b>`;
 } else {
   li.innerText = `${medal}${i + 1}. ${u.name} – ${u.points}`;
@@ -583,7 +603,32 @@ document.getElementById("clickerView").style.display = "none";
   // Startseite zeigen
   document.getElementById("homeView").style.display = "block";
 }
-document.getElementById("clickerBtn").onclick = () => {
+document.getElementById("clickerBtn").onclick = (e) => {
+  const btn = e.currentTarget;
+
+  // 🌊 Ripple erzeugen
+  const ripple = document.createElement("span");
+  ripple.className = "ripple";
+
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+
+  ripple.style.width = ripple.style.height = size + "px";
+  ripple.style.left = e.clientX - rect.left - size / 2 + "px";
+  ripple.style.top = e.clientY - rect.top - size / 2 + "px";
+
+  btn.appendChild(ripple);
+
+  setTimeout(() => ripple.remove(), 600);
+
+  // ➕ Punkte
+  points += 0.5;
+  document.getElementById("clickerPoints").innerText =
+    "Punkte: " + points.toFixed(1);
+
+  updateUI();
+  savePoints();
+};
   points += 0.5;
 
   document.getElementById("clickerPoints").innerText =
