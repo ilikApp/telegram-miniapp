@@ -112,11 +112,11 @@ button:hover {
   <h1>🎮 Spielzentrum</h1>
 
   <div class="grid">
-    <div class="tile" onclick="openLeaderboard()">🏆 Leaderboard</div>
-    <div class="tile" onclick="openDaily()">🎡 Tagesrad</div>
-    <div class="tile" onclick="openEndless()">♾️ Endlos</div>
-    <div class="tile" onclick="openRisk()">💣 Risiko</div>
-    <div class="tile" onclick="openClicker()">🖱 Clicker</div>
+<div class="tile" onclick="openKachel('leaderboard')">🏆 Leaderboard</div>
+<div class="tile" onclick="openKachel('tagesrad')">🎡 Tagesrad</div>
+<div class="tile" onclick="openKachel('endlos')">♾️ Endlos</div>
+<div class="tile" onclick="openKachel('risiko')">💣 Risiko</div>
+<div class="tile" onclick="openKachel('clicker')">🖱 Clicker</div>
   </div>
 </div>
 <!-- ===== LEADERBOARD SEITE ===== -->
@@ -649,9 +649,9 @@ document.getElementById("clickerPoints").innerText = "Punkte: " + points.toFixed
 };
 // 1. Funktion, die beim Klicken auf eine Kachel (z.B. Tagesrad) die Fragen lädt
 function openKachel(kachelId) {
-  hideAllViews();
-  document.getElementById("kachelView").style.display = "block";
-  loadKachelQuestions(kachelId);
+  hideAllViews();  // Alle anderen Views ausblenden
+  document.getElementById("kachelView").style.display = "block"; // Kachel-Ansicht anzeigen
+  loadKachelQuestions(kachelId);  // Fragen für die gewählte Kachel laden
 }
 
 // 2. Diese Funktion lädt alle Fragen für die angeklickte Kachel
@@ -671,7 +671,7 @@ function loadKachelQuestions(kachelId) {
 
       kachelQuestions.forEach(q => {
         const div = document.createElement("div");
-        div.innerHTML = `
+        div.innerHTML = ` 
           <h3>${q.question}</h3>
           <button onclick="deleteQuestion('${q.kachelId}', '${q.id}')">Löschen</button>
         `;
