@@ -622,9 +622,9 @@ document.getElementById("clickerBtn").onclick = (e) => {
   setTimeout(() => ripple.remove(), 600);
 
   // ➕ Punkte
-  points += 0.1;
-  document.getElementById("clickerPoints").innerText =
-    "Punkte: " + points.toFixed(1);
+points += 0.1;
+points = Math.round(points * 100) / 100;  // Punkte auf 2 Dezimalstellen runden
+document.getElementById("clickerPoints").innerText = "Punkte: " + points.toFixed(1);  // Anzeige aktualisieren
 
   updateUI();
   savePoints();
