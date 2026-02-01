@@ -482,6 +482,17 @@ function openLeaderboard() {
   loadLeaderboardOnly();
 }
 
+// Hier änderst du die Kachel-Klick-Events, damit sie die Funktion "openKachel" aufrufen
+
+// Beim Klick auf "Tagesrad" wird die Funktion für "Tagesrad"-Fragen aufgerufen
+document.querySelector(".tile[onclick='openDaily()']").onclick = () => openKachel('tagesrad');
+
+// Beim Klick auf "Risiko" wird die Funktion für "Risiko"-Fragen aufgerufen
+document.querySelector(".tile[onclick='openRisk()']").onclick = () => openKachel('risiko');
+
+// Beim Klick auf "Endlos" wird die Funktion für "Endlos"-Fragen aufgerufen
+document.querySelector(".tile[onclick='openEndless()']").onclick = () => openKachel('endlos');
+
 function openDaily() {
   if (hasPlayedDaily()) {
     alert("🎡 Du hast das Tagesrad heute schon gespielt!");
@@ -550,6 +561,13 @@ function openRisk() {
   document.getElementById("result").innerText =
     "💣 Setze Punkte und beantworte eine Frage!";
 }
+
+<!-- Bereich für die Fragen einer Kachel -->
+<div id="kachelView" style="display:none;">
+  <button onclick="goHome()">⬅ Zurück</button>
+  <h1>Fragen für die Kachel</h1>
+  <div id="kachelQuestions"></div>
+</div>
 
 function openClicker() {
   hideAllViews();
@@ -629,6 +647,53 @@ document.getElementById("clickerPoints").innerText = "Punkte: " + points.toFixed
   updateUI();
   savePoints();
 };
+// 1. Funktion, die beim Klicken auf eine Kachel (z.B. Tagesrad) die Fragen lädt
+function openKachel(kachelId) {
+  hideAllViews();
+  document.getElementById("kachelView").style.display = "block";
+  loadKachelQuestions(kachelId);
+}
+
+// 2. Diese Funktion lädt alle Fragen für die angeklickte Kachel
+function loadKachelQuestions(kachelId) {
+  fetch(API + "/admin/questions") // Hole alle Fragen
+    .then(r => r.json())
+    .then(questions => {
+      // Filtere die Fragen nach der Kachel
+      const kachelQuestions = questions.filter(q => q.kachelId === kachelId);
+      
+      const questionContainer = document.getElementById("kachelQuestions");
+      questionContainer.innerHTML = ""; // Leere vorherige Fragen
+
+      if (kachelQuestions.length === 0) {
+        questionContainer.innerHTML = "<p>Keine Fragen für diese Kachel vorhanden.</p>";
+      }
+
+      kachelQuestions.forEach(q => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <h3>${q.question}</h3>
+          <button onclick="deleteQuestion('${q.kachelId}', '${q.id}')">Löschen</button>
+        `;
+        questionContainer.appendChild(div);
+      });
+    });
+}
+
+// Lösche eine Frage aus einer Kachel
+function deleteQuestion(kachelId, questionId) {
+  fetch(API + `/admin/kachel/${kachelId}/question/${questionId}`, {
+    method: "DELETE",
+    headers: {
+      "x-admin-key": "MEIN_GEHEIMES_PASSWORT" // Hier dein Admin-Key
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    alert("Frage gelöscht!");
+    loadKachelQuestions(kachelId); // Fragen nach dem Löschen neu laden
+  });
+}
 
 </script>
 </body>
